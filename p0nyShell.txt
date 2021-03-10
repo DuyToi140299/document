@@ -4,7 +4,7 @@
   <body>		
      <?php
 	 $openfile = fopen("index.php","r") or die("out source");
-	 echo fread(openfile,filesize("index.php"));
+	 echo fread($openfile,filesize("index.php"));
 	 fclose($openfile);
      ?>
   </body>
