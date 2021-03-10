@@ -3,7 +3,7 @@
   </header>
   <body>		
      <?php
-	 system("ls");
+	 file_get_contents("index.php");
      ?>
   </body>
 <html>
