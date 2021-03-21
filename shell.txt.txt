@@ -2,8 +2,7 @@
   <header>
   </header>
   <body>		
-     <?php
-	 shell_exec("cat ../../etc/passwd");
-     ?>
+     <script>alert(1)</script>
   </body>
 <html>
+
